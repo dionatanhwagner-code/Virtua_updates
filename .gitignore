@@ -1,0 +1,8 @@
+﻿dist/
+build/
+*.exe
+*.pkg
+*.spec
+versao_alunos_BACKUP_4.1/
+__pycache__/
+*.pyc
