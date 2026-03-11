@@ -37,7 +37,12 @@ from groq import Groq
 from interface_alunos import VirtuaInterface, tela_setup, carregar_config, get_ip_local
 
 # ==================== AUTO-UPDATE ====================
-VERSAO_ATUAL = "4.2"
+_version_file = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'version.txt')
+if os.path.exists(_version_file):
+    with open(_version_file, 'r') as f:
+        VERSAO_ATUAL = f.read().strip()
+else:
+    VERSAO_ATUAL = "4.2"
 
 GITHUB_RAW = "https://raw.githubusercontent.com/dionatanhwagner-code/Virtua_updates/main"
 
@@ -106,6 +111,7 @@ def _aplicar_update(version_nova):
 
         log_update(f"Pasta de instalação: {pasta}")
         erros = 0
+        _version_file = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'version.txt')
 
         for arquivo in ARQUIVOS_UPDATE:
             try:
@@ -125,6 +131,11 @@ def _aplicar_update(version_nova):
                 erros += 1
 
         log_update(f"Update concluído com {erros} erro(s) — reiniciando")
+
+        with open(_version_file, 'w') as f:
+            f.write(version_nova)
+        log_update(f"version.txt atualizado para {version_nova}")
+
         bat_path = os.path.join(pasta, "_update.bat")
         with open(bat_path, 'w') as f:
             f.write(f"""@echo off
