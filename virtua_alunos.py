@@ -1124,7 +1124,7 @@ def fazer_briefing():
         ]
         for p in possiveis:
             if os.path.exists(p):
-                subprocess.Popen(p); break
+                subprocess.Popen([p]); break
         time.sleep(6)
     except Exception as e:
         print(f"Erro ao abrir MT5: {e}")
@@ -1137,7 +1137,7 @@ def fazer_briefing():
                 partes.append(f"O ouro está cotado a {tick.ask:.2f} dólares.")
     except Exception as e:
         print(f"Briefing MT5 erro: {e}")
-        
+
     try:
         ticker = yf.Ticker("USDBRL=X")
         preco = ticker.fast_info['last_price']
