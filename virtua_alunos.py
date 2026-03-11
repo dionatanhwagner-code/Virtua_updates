@@ -1124,7 +1124,7 @@ def fazer_briefing():
         ]
         for p in possiveis:
             if os.path.exists(p):
-                subprocess.Popen([p]); break
+                os.startfile(p); break
         time.sleep(6)
     except Exception as e:
         print(f"Erro ao abrir MT5: {e}")
