@@ -4,7 +4,7 @@
 #define MyAppName "Virtua"
 #define MyAppVersion "4.2"
 #define MyAppPublisher "Jonhy Wagner"
-#define MyAppExeName "Virtua.exe"
+#define MyAppExeName "virtua_alunos.exe"
 
 [Setup]
 AppId={{C627EBD7-A8F7-4C88-9E2F-52E026C73889}
@@ -29,10 +29,8 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; Flags: unchecked
 
 [Files]
-
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\dist\Virtua.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\dist\virtua_alunos.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\virtua_icon_gold.ico"; DestDir: "{app}"; Flags: ignoreversion
-
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\interface_alunos.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\servidor_alunos.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\automacao.py"; DestDir: "{app}"; Flags: ignoreversion
@@ -40,10 +38,8 @@ Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\whatsapp.py";
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\phone_link.py"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-
-Name: "{autoprograms}\Virtua"; Filename: "{app}\Virtua.exe"; IconFilename: "{app}\virtua_icon_gold.ico"
-Name: "{autodesktop}\Virtua"; Filename: "{app}\Virtua.exe"; Tasks: desktopicon; IconFilename: "{app}\virtua_icon_gold.ico"
+Name: "{autoprograms}\Virtua"; Filename: "{app}\virtua_alunos.exe"; IconFilename: "{app}\virtua_icon_gold.ico"
+Name: "{autodesktop}\Virtua"; Filename: "{app}\virtua_alunos.exe"; Tasks: desktopicon; IconFilename: "{app}\virtua_icon_gold.ico"
 
 [Run]
-
-Filename: "{app}\Virtua.exe"; Description: "Abrir Virtua"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\virtua_alunos.exe"; Description: "Abrir Virtua"; Flags: nowait postinstall skipifsilent

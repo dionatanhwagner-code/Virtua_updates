@@ -665,12 +665,14 @@ class VirtuaWindow(QMainWindow):
             self._cfg_win.raise_(); return
 
         win=QDialog(self); win.setWindowTitle("VIRTUA — Configurações")
-        win.setFixedSize(520,820); win.setStyleSheet("background:#000010;")
+        screen = QApplication.primaryScreen().availableGeometry()
+        h = min(820, screen.height() - 60)
+        win.setFixedSize(520, h)
         self._cfg_win=win
 
         scroll=QScrollArea(win); scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea{background:#000010;border:none;}")
-        scroll.setGeometry(0,0,520,820)
+        scroll.setGeometry(0, 0, 520, h)
         inner=QWidget(); scroll.setWidget(inner)
         lay=QVBoxLayout(inner); lay.setContentsMargins(20,20,20,20); lay.setSpacing(4)
 

@@ -34,49 +34,45 @@ import time
 import sys
 import automacao
 from groq import Groq
+from interface_alunos import VirtuaInterface, tela_setup, carregar_config, get_ip_local
 
 # ==================== AUTO-UPDATE ====================
+VERSAO_ATUAL = "4.2"
 
-VFICHEIROS_UPDATE = {
-    "virtua_alunos.py":    "1CgIrAcszW__Pm_iYu3zBx6SlJJSMa_Oh",
-    "interface_alunos.py": "1h4JaArDr7P29x90SiOZoyGKH0YmdhmIj",
-    "servidor_alunos.py":  "1K8QHDaQdSXQCaDRuaGF4louPE9DOCL-7",
-    "whatsapp.py":         "1nKc7-KYJWZf1gB8frpCHSiq0-dFuWaTm",
-    "phone_link.py":       "1NeKFyX_obe4WjvUbQcXXVI3Z5TrLamEd",
-    "automacao.py":        "1jmavxl3GFetQQ0AFU09hyZHZFlBR2utB",
-}
-VERSION_FILE_ID = "1EYGMa_61xLxGEVtJaHwX9_ldvw90VBXO478QkVBXsKk"
+GITHUB_RAW = "https://raw.githubusercontent.com/dionatanhwagner-code/Virtua_updates/main"
 
-# ---- Log de update ----
+ARQUIVOS_UPDATE = [
+    "virtua_alunos.py",
+    "interface_alunos.py",
+    "servidor_alunos.py",
+    "automacao.py",
+    "whatsapp.py",
+    "phone_link.py",
+]
+
 def log_update(msg):
     try:
         log_path = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'update_log.txt')
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
         with open(log_path, 'a', encoding='utf-8') as f:
             f.write(f"{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - {msg}\n")
     except:
         pass
 
-def _get_version_local():
-    version_file = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'version.txt')
-    if os.path.exists(version_file):
-        with open(version_file, 'r') as f:
-            return f.read().strip()
-    return "4.1"
-
-VERSION_LOCAL = _get_version_local()
-
 def verificar_atualizacao():
     try:
-        log_update(f"Verificando atualização — versão local: {VERSION_LOCAL}")
-        url_version = f"https://docs.google.com/document/d/{VERSION_FILE_ID}/export?format=txt"
-        resp = requests.get(url_version, timeout=10)
-        version_remota = resp.text.strip().replace("\ufeff", "")
-        log_update(f"Versão remota: {version_remota}")
-        if version_remota and version_remota != VERSION_LOCAL:
-            log_update(f"Update disponível: {VERSION_LOCAL} → {version_remota}")
-            _baixar_updates(version_remota)
+        log_update(f"Verificando atualização — versão local: {VERSAO_ATUAL}")
+        url = f"{GITHUB_RAW}/versao.json"
+        resp = requests.get(url, timeout=10)
+        dados = resp.json()
+        versao_remota = dados.get("versao", "0")
+        log_update(f"Versão remota: {versao_remota}")
+
+        if versao_remota > VERSAO_ATUAL:
+            log_update(f"Update disponível: {VERSAO_ATUAL} → {versao_remota}")
+            _baixar_updates(versao_remota)
         else:
-            log_update(f"Virtua já está atualizada — versão {VERSION_LOCAL}")
+            log_update(f"Virtua já está atualizada — versão {VERSAO_ATUAL}")
     except Exception as e:
         log_update(f"Erro ao verificar atualização: {e}")
 
@@ -92,16 +88,15 @@ def _baixar_updates(version_nova):
         )
         root_tmp.destroy()
         if resposta:
-            log_update("Usuário aceitou o update — iniciando download dos arquivos")
+            log_update("Usuário aceitou o update — iniciando download")
             _aplicar_update(version_nova)
         else:
             log_update("Usuário recusou o update")
     except Exception as e:
-        log_update(f"Erro ao exibir diálogo de update: {e}")
+        log_update(f"Erro ao exibir diálogo: {e}")
 
 def _aplicar_update(version_nova):
     try:
-        # Pasta onde está o Virtua.exe
         if getattr(sys, 'frozen', False):
             pasta = os.path.dirname(sys.executable)
             exe_atual = sys.executable
@@ -110,53 +105,26 @@ def _aplicar_update(version_nova):
             exe_atual = os.path.abspath(__file__)
 
         log_update(f"Pasta de instalação: {pasta}")
-
-        session = requests.Session()
         erros = 0
 
-        for nome_arquivo, file_id in VFICHEIROS_UPDATE.items():
+        for arquivo in ARQUIVOS_UPDATE:
             try:
-                log_update(f"Baixando {nome_arquivo}...")
-                url = f"https://drive.google.com/uc?export=download&id={file_id}"
-                r = session.get(url, timeout=30)
-
-                # Trata confirmação de vírus do Drive
-                token = None
-                for key, value in r.cookies.items():
-                    if key.startswith('download_warning'):
-                        token = value
-                        break
-                if token:
-                    url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm={token}"
-                    r = session.get(url, timeout=30)
-
-                if r.status_code != 200:
-                    log_update(f"Erro ao baixar {nome_arquivo}: status {r.status_code}")
+                log_update(f"Baixando {arquivo}...")
+                url = f"{GITHUB_RAW}/{arquivo}"
+                resp = requests.get(url, timeout=30)
+                if resp.status_code != 200:
+                    log_update(f"Erro {resp.status_code} ao baixar {arquivo}")
                     erros += 1
                     continue
-
-                destino = os.path.join(pasta, nome_arquivo)
+                destino = os.path.join(pasta, arquivo)
                 with open(destino, 'wb') as f:
-                    f.write(r.content)
-                log_update(f"{nome_arquivo} salvo em {destino}")
-
+                    f.write(resp.content)
+                log_update(f"{arquivo} atualizado!")
             except Exception as e:
-                log_update(f"Erro ao baixar {nome_arquivo}: {e}")
+                log_update(f"Erro ao baixar {arquivo}: {e}")
                 erros += 1
 
-        # Salva nova versão no AppData
-        appdata = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
-        os.makedirs(appdata, exist_ok=True)
-        with open(os.path.join(appdata, 'version.txt'), 'w') as f:
-            f.write(version_nova)
-        log_update(f"version.txt atualizado para {version_nova}")
-
-        if erros == 0:
-            log_update("Todos os arquivos baixados — reiniciando Virtua")
-        else:
-            log_update(f"Update concluído com {erros} erro(s) — reiniciando mesmo assim")
-
-        # Reinicia o .exe (não precisa substituir nada, só reiniciar)
+        log_update(f"Update concluído com {erros} erro(s) — reiniciando")
         bat_path = os.path.join(pasta, "_update.bat")
         with open(bat_path, 'w') as f:
             f.write(f"""@echo off
@@ -169,24 +137,8 @@ del "%~f0"
         sys.exit()
 
     except Exception as e:
-        log_update(f"Erro crítico no _aplicar_update: {e}")
-def caminho_recurso(arquivo):
-    if hasattr(sys, "_MEIPASS"):
-        return os.path.join(sys._MEIPASS, arquivo)
-    return os.path.join(os.path.abspath("."), arquivo)
-
-_appdata = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
-os.makedirs(_appdata, exist_ok=True)
-AGENDA_FILE  = os.path.join(_appdata, "agenda.json")
-MEMORIA_FILE = os.path.join(_appdata, "memoria.json")
-from interface_alunos import VirtuaInterface, tela_setup, carregar_config, get_ip_local
-
-# Keys são carregadas do config.json no bloco if __name__ == "__main__"
-cliente_claude = None
-cliente_groq   = None
-historico      = []
-ui             = None
-NOME           = ""
+        log_update(f"Erro crítico no update: {e}")
+# ==================== FIM AUTO-UPDATE ====================
 
 # ==================== CÂMERAS ====================
 CAMERAS = {
@@ -194,6 +146,12 @@ CAMERAS = {
     "padrão": 0, "principal": 0
 }
 CAMERA_ATIVA = 0  # câmera padrão (alunos podem ter câmeras diferentes)
+
+# ==================== PATHS ====================
+_appdata = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
+os.makedirs(_appdata, exist_ok=True)
+AGENDA_FILE  = os.path.join(_appdata, "agenda.json")
+MEMORIA_FILE = os.path.join(_appdata, "memoria.json")
 
 # ==================== SISTEMA DE MEMÓRIA ====================
 
@@ -454,7 +412,7 @@ def registrar_gasto(categoria, descricao, valor):
         total_mes += float(valor)
         ws.cell(row=proxima, column=5, value=total_mes)
         wb.save(GASTOS_FILE)
-        os.startfile(GASTOS_FILE)
+        
         servidor.enviar_push("💸 GASTO", f"{descricao.capitalize()} • R$ {float(valor):.2f}")
         return True
     except Exception as e:
@@ -1358,7 +1316,7 @@ def loop_virtua():
 # ==================== PONTO DE ENTRADA ====================
 
 if __name__ == "__main__":
-    verificar_atualizacao()
+    
     from pyngrok import ngrok
 
     config = carregar_config()
