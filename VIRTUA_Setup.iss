@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Virtua"
-#define MyAppVersion "4.3"
+#define MyAppVersion "4.4"
 #define MyAppPublisher "Jonhy Wagner"
 #define MyAppExeName "virtua_alunos.exe"
 

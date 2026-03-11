@@ -74,7 +74,6 @@ def verificar_atualizacao():
         dados = resp.json()
         versao_remota = dados.get("versao", "0")
         log_update(f"Versão remota: {versao_remota}")
-
         if versao_remota > VERSAO_ATUAL:
             log_update(f"Update disponível: {VERSAO_ATUAL} → {versao_remota}")
             _baixar_updates(versao_remota)
@@ -113,7 +112,9 @@ def _aplicar_update(version_nova):
 
         log_update(f"Pasta de instalação: {pasta}")
         erros = 0
-        _version_file = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'version.txt')
+        appdata_u = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
+        os.makedirs(appdata_u, exist_ok=True)
+        _vfile = os.path.join(appdata_u, 'version.txt')
 
         for arquivo in ARQUIVOS_UPDATE:
             try:
@@ -134,7 +135,7 @@ def _aplicar_update(version_nova):
 
         log_update(f"Update concluído com {erros} erro(s) — reiniciando")
 
-        with open(_version_file, 'w') as f:
+        with open(_vfile, 'w') as f:
             f.write(version_nova)
         log_update(f"version.txt atualizado para {version_nova}")
 
@@ -158,13 +159,32 @@ CAMERAS = {
     "0": 0, "1": 1, "2": 2, "3": 3, "4": 4,
     "padrão": 0, "principal": 0
 }
-CAMERA_ATIVA = 0  # câmera padrão (alunos podem ter câmeras diferentes)
+CAMERA_ATIVA = 0
 
 # ==================== PATHS ====================
 _appdata = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
 os.makedirs(_appdata, exist_ok=True)
 AGENDA_FILE  = os.path.join(_appdata, "agenda.json")
 MEMORIA_FILE = os.path.join(_appdata, "memoria.json")
+GASTOS_FILE  = os.path.join(_appdata, "gastos.xlsx")
+
+cliente_claude = None
+cliente_groq   = None
+historico      = []
+ui             = None
+NOME           = ""
+
+# ==================== MT5 DINÂMICO ====================
+def inicializar_mt5():
+    import MetaTrader5 as mt5
+    for p in [
+        r"C:\Program Files\MetaTrader 5\terminal64.exe",
+        r"C:\Program Files\MetaTrader 52\terminal64.exe",
+        r"C:\Program Files (x86)\MetaTrader 5\terminal64.exe",
+    ]:
+        if os.path.exists(p):
+            return mt5.initialize(path=p)
+    return mt5.initialize()
 
 # ==================== SISTEMA DE MEMÓRIA ====================
 
@@ -384,7 +404,6 @@ def perguntar_groq(pergunta):
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
-GASTOS_FILE = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', "gastos.xlsx")
 
 def registrar_gasto(categoria, descricao, valor):
     try:
@@ -425,7 +444,6 @@ def registrar_gasto(categoria, descricao, valor):
         total_mes += float(valor)
         ws.cell(row=proxima, column=5, value=total_mes)
         wb.save(GASTOS_FILE)
-        
         servidor.enviar_push("💸 GASTO", f"{descricao.capitalize()} • R$ {float(valor):.2f}")
         return True
     except Exception as e:
@@ -459,6 +477,7 @@ def processar_comando(comando):
             "Os grandes traders não nascem prontos, são forjados na consistência!",
             f"{NOME}, o mercado recompensa quem tem paciência e estratégia!",
             "Acredite no seu método, confie no processo!",
+            f"{NOME}, um dia de cada vez. Vamos fazer essa operação valer!"
         ]
         texto = random.choice(frases)
         falar(texto); return texto
@@ -686,7 +705,6 @@ Dados atuais:
             preco2 = float(numeros[1].replace(',', '.')) / 100
             if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
-            # Caminho dinâmico para o MT5 (funciona em qualquer PC)
             appdata_roaming = os.environ.get('APPDATA', '')
             zonas_mt5 = os.path.join(appdata_roaming, "MetaQuotes", "Terminal", "Common", "Files", "zonas.txt")
             os.makedirs(os.path.dirname(zonas_mt5), exist_ok=True)
@@ -811,7 +829,6 @@ Dados atuais:
     elif "mt5" in comando:
         texto = "Abrindo o MetaTrader 5!"
         falar(texto)
-        # Busca MT5 dinamicamente
         possiveis = [
             r"C:\Program Files\MetaTrader 5\terminal64.exe",
             r"C:\Program Files\MetaTrader 52\terminal64.exe",
@@ -898,6 +915,11 @@ Dados atuais:
         texto = "Abrindo o gerenciador de tarefas!"
         falar(texto); os.system("taskmgr"); return texto
 
+    elif any(x in comando for x in ["abre planilha", "abrir gastos", "ver gastos", "abre gastos"]):
+        os.startfile(GASTOS_FILE)
+        texto = "Abrindo a planilha de gastos!"
+        falar(texto); return texto
+
     elif "lixeira" in comando:
         texto = "Abrindo a lixeira!"
         falar(texto); os.startfile("shell:RecycleBinFolder"); return texto
@@ -965,9 +987,9 @@ Dados atuais:
     elif any(x in comando for x in ["sessões de mercado", "horário das sessões", "quando abre londres"]):
         texto = (
             f"Os horários das sessões em Brasília são: "
-            f"Tóquio abre à meia-noite. "
+            f"Tóquio abre às 21 horas. "
             f"Londres abre às 5 da manhã. "
-            f"Nova York e B3 abrem às 10 da manhã."
+            f"Nova York e B3 abrem às 9 da manhã."
         )
         falar(texto); return texto
 
@@ -992,9 +1014,8 @@ Dados atuais:
         registrar_memoria(tipo, comando)
         texto = f"Anotado {NOME}! Vou lembrar disso."
         falar(texto); return texto
-    
-    # --- Automação Residencial ---
 
+    # --- Automação Residencial ---
     elif any(x in comando for x in ["liga tudo", "ligar tudo", "acende tudo"]):
         n = automacao.ligar_tudo()
         texto = f"{NOME}, liguei {n} dispositivo{'s' if n != 1 else ''}!"
@@ -1089,7 +1110,6 @@ def fazer_briefing():
         saudacao = f"Boa noite {NOME}! São {hora_str}."
     partes.append(saudacao)
 
-    # Compromissos de hoje
     cfg_briefing = carregar_config()
     try:
         if cfg_briefing.get('briefing_agenda', True):
@@ -1115,7 +1135,7 @@ def fazer_briefing():
     except Exception as e:
         print(f"Briefing clima erro: {e}")
 
-    # Abre o MT5 se não estiver rodando
+    # Abre o MT5 automaticamente
     try:
         possiveis = [
             r"C:\Program Files\MetaTrader 5\terminal64.exe",
@@ -1162,7 +1182,6 @@ def fazer_briefing():
     except Exception as e:
         print(f"Briefing trading erro: {e}")
 
-    # Notícias — só entre 07:00 e 12:00
     if 7 <= agora.hour < 12:
         try:
             NEWS_API_KEY = "32b3a26b754f46e193ee59837b19befc"
@@ -1170,8 +1189,6 @@ def fazer_briefing():
             cliente_groq_news = Groq(api_key=GROQ_API_KEY)
             titulos_mercado = []
             titulos_brasil  = []
-
-            # Notícias mercado financeiro — em inglês
             url_mercado = (
                 f"https://newsapi.org/v2/everything?"
                 f"q=gold+stock+market+forex&"
@@ -1181,8 +1198,6 @@ def fazer_briefing():
             r = requests.get(url_mercado, timeout=5).json()
             for art in r.get("articles", [])[:3]:
                 titulos_mercado.append(art["title"].split(" - ")[0].strip())
-
-            # Notícias Brasil — em português
             url_brasil = (
                 f"https://newsapi.org/v2/everything?"
                 f"q=brasil&"
@@ -1192,8 +1207,6 @@ def fazer_briefing():
             r2 = requests.get(url_brasil, timeout=5).json()
             for art in r2.get("articles", [])[:3]:
                 titulos_brasil.append(art["title"].split(" - ")[0].strip())
-
-            # Traduz mercado via Groq
             if titulos_mercado:
                 prompt = (
                     "Traduza esses títulos de notícias financeiras para português brasileiro "
@@ -1210,12 +1223,10 @@ def fazer_briefing():
                 for t in traduzidos:
                     if t.strip():
                         partes.append(t.strip() + ".")
-
             if titulos_brasil:
                 partes.append("No Brasil:")
                 for t in titulos_brasil:
                     partes.append(t + ".")
-
         except Exception as e:
             print(f"Briefing notícias erro: {e}")
 
@@ -1236,10 +1247,10 @@ def fazer_briefing():
 
 def modo_proativo():
     SESSOES = [
-        {"nome": "Tóquio",    "hora": 0,  "minuto": 0,  "msg": lambda: f"{NOME}, a sessão de Tóquio abriu! Atenção ao mercado asiático."},
+        {"nome": "Tóquio",    "hora": 21, "minuto": 0,  "msg": lambda: f"{NOME}, a sessão de Tóquio abriu! Atenção ao mercado asiático."},
         {"nome": "Londres",   "hora": 5,  "minuto": 0,  "msg": lambda: f"{NOME}, a sessão de Londres abriu! O mercado europeu está ativo."},
-        {"nome": "Nova York", "hora": 10, "minuto": 0,  "msg": lambda: f"{NOME}, a sessão de Nova York abriu! Hora de ficar de olho no ouro."},
-        {"nome": "B3",        "hora": 10, "minuto": 0,  "msg": lambda: f"{NOME}, a perca de tempo da B3 abriu!"},
+        {"nome": "Nova York", "hora": 9,  "minuto": 0,  "msg": lambda: f"{NOME}, a sessão de Nova York abriu! Hora de ficar de olho no ouro."},
+        {"nome": "B3",        "hora": 9,  "minuto": 30, "msg": lambda: f"{NOME}, a B3 abriu!"},
     ]
     sessoes_avisadas  = set()
     agenda_avisada    = set()
@@ -1343,7 +1354,7 @@ def loop_virtua():
 # ==================== PONTO DE ENTRADA ====================
 
 if __name__ == "__main__":
-    
+
     from pyngrok import ngrok
 
     config = carregar_config()
