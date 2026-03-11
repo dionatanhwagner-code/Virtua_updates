@@ -141,7 +141,7 @@ def _aplicar_update(version_nova):
         bat_path = os.path.join(pasta, "_update.bat")
         with open(bat_path, 'w') as f:
             f.write(f"""@echo off
-taskkill /F /IM Virtua.exe /T >nul 2>&1
+taskkill /F /IM virtua_alunos.exe /T >nul 2>&1
 timeout /t 2 /nobreak >nul
 start "" "{exe_atual}"
 del "%~f0"
