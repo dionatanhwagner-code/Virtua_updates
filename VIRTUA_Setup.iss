@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Virtua"
-#define MyAppVersion "4.2"
+#define MyAppVersion "4.3"
 #define MyAppPublisher "Jonhy Wagner"
 #define MyAppExeName "virtua_alunos.exe"
 
@@ -21,6 +21,7 @@ OutputBaseFilename=VIRTUA_Setup
 SetupIconFile=C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\virtua_icon_gold.ico
 SolidCompression=yes
 WizardStyle=modern
+PrivilegesRequired=lowest
 
 [Languages]
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
@@ -30,12 +31,8 @@ Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; Flags: un
 
 [Files]
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\dist\virtua_alunos.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\dist\updater.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\virtua_icon_gold.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\interface_alunos.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\servidor_alunos.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\automacao.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\whatsapp.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\DoubleTec Cliente\Desktop\a\Jarvis\versao_alunos\phone_link.py"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Virtua"; Filename: "{app}\virtua_alunos.exe"; IconFilename: "{app}\virtua_icon_gold.ico"

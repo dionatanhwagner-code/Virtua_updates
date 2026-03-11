@@ -1115,6 +1115,20 @@ def fazer_briefing():
     except Exception as e:
         print(f"Briefing clima erro: {e}")
 
+    # Abre o MT5 se não estiver rodando
+    try:
+        possiveis = [
+            r"C:\Program Files\MetaTrader 5\terminal64.exe",
+            r"C:\Program Files\MetaTrader 52\terminal64.exe",
+            r"C:\Program Files (x86)\MetaTrader 5\terminal64.exe",
+        ]
+        for p in possiveis:
+            if os.path.exists(p):
+                subprocess.Popen(p); break
+        time.sleep(6)
+    except Exception as e:
+        print(f"Erro ao abrir MT5: {e}")
+
     try:
         import MetaTrader5 as mt5
         if mt5.initialize():
@@ -1123,7 +1137,7 @@ def fazer_briefing():
                 partes.append(f"O ouro está cotado a {tick.ask:.2f} dólares.")
     except Exception as e:
         print(f"Briefing MT5 erro: {e}")
-
+        
     try:
         ticker = yf.Ticker("USDBRL=X")
         preco = ticker.fast_info['last_price']
