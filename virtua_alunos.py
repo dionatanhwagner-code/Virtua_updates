@@ -483,7 +483,7 @@ def processar_comando(comando):
     elif "análise do ouro" in comando or "análise xauusd" in comando:
         try:
             import MetaTrader5 as mt5
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 texto = "Erro ao inicializar o MetaTrader 5."
                 falar(texto); return texto
             def media_movel(rates, periodo):
@@ -522,7 +522,7 @@ Dados atuais:
     elif "ouro" in comando or "xauusd" in comando:
         try:
             import MetaTrader5 as mt5
-            mt5.initialize()
+            inicializar_mt5()
             tick = mt5.symbol_info_tick("XAUUSD")
             texto = f"O ouro está cotado a {tick.ask:.2f} dólares"
             falar(texto); return texto
@@ -551,7 +551,7 @@ Dados atuais:
     elif any(p in comando for p in ["posições abertas", "posicoes abertas", "tenho posições", "posição aberta"]):
         try:
             import MetaTrader5 as mt5
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             posicoes = mt5.positions_get()
             if not posicoes:
@@ -571,7 +571,7 @@ Dados atuais:
     elif any(p in comando for p in ["lucro atual", "resultado atual", "quanto estou", "como estou no trading", "profit"]):
         try:
             import MetaTrader5 as mt5
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             posicoes = mt5.positions_get()
             if not posicoes:
@@ -590,7 +590,7 @@ Dados atuais:
     elif any(p in comando for p in ["fechar tudo", "fecha tudo", "fechar todas", "zerar posições"]):
         try:
             import MetaTrader5 as mt5
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             posicoes = mt5.positions_get()
             if not posicoes:
@@ -629,7 +629,7 @@ Dados atuais:
             tipo_ordem = mt5.ORDER_TYPE_BUY if any(p in comando for p in ["comprar","compra","compre"]) else mt5.ORDER_TYPE_SELL
             numeros = re.findall(r'\d{6}', comando)
             volume = float(numeros[0].replace(',', '.')) if numeros else 0.01
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             tick = mt5.symbol_info_tick("XAUUSD")
             preco = tick.ask if tipo_ordem == mt5.ORDER_TYPE_BUY else tick.bid
@@ -653,7 +653,7 @@ Dados atuais:
     elif any(p in comando for p in ["resultado de hoje", "lucro de hoje", "como foi hoje", "fechei hoje"]):
         try:
             import MetaTrader5 as mt5
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             agora = datetime.datetime.now()
             inicio_dia = agora.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -684,7 +684,7 @@ Dados atuais:
                 falar(f"{NOME}, preciso de dois preços para montar a zona de referência."); return
             preco1 = float(numeros[0].replace(',', '.')) / 100
             preco2 = float(numeros[1].replace(',', '.')) / 100
-            if not mt5.initialize():
+            if not inicializar_mt5():
                 falar(f"{NOME}, não consegui conectar ao MT5."); return
             # Caminho dinâmico para o MT5 (funciona em qualquer PC)
             appdata_roaming = os.environ.get('APPDATA', '')
@@ -1131,7 +1131,7 @@ def fazer_briefing():
 
     try:
         import MetaTrader5 as mt5
-        if mt5.initialize():
+        if inicializar_mt5():
             tick = mt5.symbol_info_tick("XAUUSD")
             if tick:
                 partes.append(f"O ouro está cotado a {tick.ask:.2f} dólares.")
@@ -1147,7 +1147,7 @@ def fazer_briefing():
 
     try:
         import MetaTrader5 as mt5
-        if mt5.initialize():
+        if inicializar_mt5():
             ontem_inicio = agora.replace(hour=0, minute=0, second=0) - datetime.timedelta(days=1)
             ontem_fim    = ontem_inicio.replace(hour=23, minute=59, second=59)
             deals = mt5.history_deals_get(ontem_inicio, ontem_fim)
@@ -1276,7 +1276,7 @@ def modo_proativo():
 
             try:
                 import MetaTrader5 as mt5
-                if mt5.initialize():
+                if inicializar_mt5():
                     tick = mt5.symbol_info_tick("XAUUSD")
                     if tick:
                         preco_atual = tick.ask
