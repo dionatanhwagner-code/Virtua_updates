@@ -37,7 +37,9 @@ from groq import Groq
 from interface_alunos import VirtuaInterface, tela_setup, carregar_config, get_ip_local
 
 # ==================== AUTO-UPDATE ====================
-_version_file = os.path.join(os.environ.get('APPDATA', ''), 'Virtua', 'version.txt')
+appdata = os.path.join(os.environ.get('APPDATA', ''), 'Virtua')
+os.makedirs(appdata, exist_ok=True)
+_version_file = os.path.join(appdata, 'version.txt')
 if os.path.exists(_version_file):
     with open(_version_file, 'r') as f:
         VERSAO_ATUAL = f.read().strip()
